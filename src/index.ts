@@ -16,6 +16,17 @@ app.use(express.json());
 // 1. Delay function (for the 2-minute wait)
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Conversational Guidelines to make the AI sound more human over the phone
+const CONVERSATIONAL_RULES = `
+Style & Behavioral Guidelines:
+1. Speak like a natural human on a real phone call. Avoid sounding robotic, formal, or like a customer support bot.
+2. Keep responses extremely short, punchy, and conversational (1-2 sentences maximum). Long paragraphs sound unnatural and overwhelm the listener.
+3. Use natural filler words occasionally (e.g., "uh," "um," "gotcha," "like," "oh") to sound authentic.
+4. Use casual, spoken-language contractions (e.g., "I'm" instead of "I am", "don't" instead of "do not", "we'll" instead of "we will").
+5. Acknowledge what the caller says before asking the next question (e.g., "Ah, got it," "Makes sense," "Oh, cool," "Right").
+6. Avoid listing options in bulleted formats or speaking too formally. Speak options casually.
+`;
+
 // 2. Vapi API Caller
 async function initiateVapiCall(customerPhoneNumber: string, dynamicPrompt: string) {
   const vapiKey = process.env.VAPI_API_KEY;
@@ -47,7 +58,7 @@ async function initiateVapiCall(customerPhoneNumber: string, dynamicPrompt: stri
             messages: [
               {
                 role: "system",
-                content: dynamicPrompt
+                content: `${dynamicPrompt}\n\n${CONVERSATIONAL_RULES}`
               }
             ]
           }
