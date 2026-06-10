@@ -76,23 +76,21 @@ async function initiateVapiCall(customerPhoneNumber: string, dynamicPrompt: stri
 
 // --- Webhooks for the 3 Workflows ---
 
-// WORKFLOW 1: New Lead Prequalification (2-Minute Delay)
+// WORKFLOW 1: New Lead Prequalification (Instant Call)
 app.post('/webhook/new-lead', async (req: Request, res: Response) => {
   const { name, phoneNumber, interest, budget } = req.body;
   
-  console.log(`[New Lead] Received lead: ${name}. Waiting 2 minutes before calling...`);
+  console.log(`[New Lead] Received lead: ${name || 'Brandon'}. Calling right away...`);
   
   // Respond immediately so the ads platform (Zapier/Make) doesn't timeout
-  res.status(200).json({ message: "Lead received, call scheduled in 2 minutes." });
+  res.status(200).json({ message: "Lead received, calling immediately." });
 
-  // Wait 2 minutes (120,000 milliseconds)
-  // For testing purposes, you can change this to 10 seconds (10000)
-  const delayMs = 120000; 
-  await wait(delayMs);
+  const clientName = name || 'Brandon';
+  const clientInterest = interest || 'telehealth services';
 
-  console.log(`[New Lead] 2 minutes passed. Initiating call to ${name}...`);
-
-  const dynamicPrompt = `You are a pre-qualification agent calling ${name}. They showed interest in ${interest}. Their stated budget is ${budget}. Ask them 3 pre-qualification questions to see if they are a good fit. If they are, offer to book them on the Calendly.`;
+  const dynamicPrompt = `You are a pre-qualification agent calling ${clientName}. 
+Your opening line should be: "Hey ${clientName}, I see you showed interest in telehealth services. Here we offer a variety of services. We have our tele store called Northstart MD, where you can explore and have a look at services which resemble a WooCommerce store."
+After the opening line, ask them pre-qualification questions to understand their needs, and if they are a good fit, offer to book them on the Calendly.`;
   
   await initiateVapiCall(phoneNumber, dynamicPrompt);
 });
