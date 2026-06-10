@@ -50,7 +50,7 @@ async function initiateVapiCall(customerPhoneNumber: string, dynamicPrompt: stri
         customer: {
           number: customerPhoneNumber
         },
-        // We override the assistant's prompt here to inject the dynamic data
+        // We override the assistant's prompt and voice here to inject the dynamic data
         assistantOverrides: {
           model: {
             provider: "anthropic",
@@ -61,6 +61,10 @@ async function initiateVapiCall(customerPhoneNumber: string, dynamicPrompt: stri
                 content: `${dynamicPrompt}\n\n${CONVERSATIONAL_RULES}`
               }
             ]
+          },
+          voice: {
+            provider: "cartesia",
+            voiceId: "57dcab65-68ac-45a6-8480-6c4c52ec1cd1" // Kira (Female, American, warm & conversational)
           }
         }
       })
@@ -86,11 +90,14 @@ app.post('/webhook/new-lead', async (req: Request, res: Response) => {
   res.status(200).json({ message: "Lead received, calling immediately." });
 
   const clientName = name || 'Brandon';
-  const clientInterest = interest || 'telehealth services';
 
   const dynamicPrompt = `You are a pre-qualification agent calling ${clientName}. 
-Your opening line should be: "Hey ${clientName}, I see you showed interest in telehealth services. Here we offer a variety of services. We have our tele store called Northstart MD, where you can explore and have a look at services which resemble a WooCommerce store."
-After the opening line, ask them pre-qualification questions to understand their needs, and if they are a good fit, offer to book them on the Calendly.`;
+Your opening line MUST be exactly: "Hey ${clientName}, I see you showed interest in telehealth services. Here we offer a variety of services. We have our tele store called Northstart MD, where you can explore and have a look at services which resemble a WooCommerce store. If you want to book a session with us press 1, to terminate press 2."
+
+After your opening line, listen carefully to the customer's response or keypad input:
+1. If they press 1 (which registers as the digit "1" or keypress) or say they want to book a session, warmly acknowledge their choice and guide them on booking a session (or tell them you will email them the Calendly link).
+2. If they press 2 (which registers as the digit "2" or keypress) or say they want to terminate/end the call, say goodbye politely and end the call.
+3. Keep your responses short, conversational, and user-centric.`;
   
   await initiateVapiCall(phoneNumber, dynamicPrompt);
 });
